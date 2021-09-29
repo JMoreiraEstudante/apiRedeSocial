@@ -3,7 +3,6 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 
-
 class CustomAccountManager(BaseUserManager):
 
     def create_superuser(self, email, user_name, password, **other_fields):
@@ -32,11 +31,18 @@ class CustomAccountManager(BaseUserManager):
         user.save()
         return user
 
-
 class NewUser(AbstractBaseUser, PermissionsMixin):
+
+    class PhotoChoices(models.IntegerChoices):
+        default = 1
+        boy = 2
+        girl = 3
 
     email = models.EmailField(_('email address'), unique=True)
     user_name = models.CharField(max_length=150, unique=True)
+    photo = models.IntegerField(choices=PhotoChoices.choices, default=PhotoChoices.default)
+    about = models.TextField(max_length=255, default="about me...")
+    following = models.ManyToManyField('self', symmetrical=False, related_name='followers', blank=True, null=True)
     start_date = models.DateTimeField(default=timezone.now)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)

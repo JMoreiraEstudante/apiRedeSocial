@@ -16,7 +16,7 @@ urlpatterns = [
     # User Management
     path('api/user/', include('user.urls', namespace='user')),
     # Blog_API Application
-    #path('api/', include('blog_api.urls', namespace='blog_api')),
+    path('api/', include('social.urls', namespace='social')),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
