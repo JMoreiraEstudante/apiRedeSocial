@@ -43,6 +43,11 @@ class UserList(generics.ListAPIView):
     queryset = NewUser.objects.all()
     serializer_class = CustomUserSerializer
 
+class UserUpdate(generics.RetrieveUpdateAPIView):
+    permission_classes = [permissions.AllowAny]
+    serializer_class = UpdateUserSerializer
+    queryset = NewUser.objects.all()
+
 class BlacklistTokenUpdateView(APIView):
     permission_classes = [permissions.AllowAny]
 

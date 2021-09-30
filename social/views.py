@@ -3,9 +3,9 @@ from django.shortcuts import get_object_or_404
 from rest_framework import generics, permissions
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Post
+from .models import Post, Comment
 from user.models import NewUser
-from .serializers import PostSerializer, UpdatePostSerializer
+from .serializers import PostSerializer, UpdatePostSerializer, CommentSerializer, UpdateCommentSerializer
 from rest_framework.decorators import api_view
 
 '''class UserPermission(permissions.BasePermission):
@@ -21,10 +21,24 @@ class PostList(generics.ListCreateAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
 
+class CommentList(generics.ListCreateAPIView):
+    permission_classes = [permissions.AllowAny]
+    serializer_class = CommentSerializer
+
+    def get_queryset(self):
+        return Comment.objects.filter(post=self.kwargs['pk'])
+
 class PostDetail(generics.RetrieveAPIView):
     permission_classes = [permissions.AllowAny]
     serializer_class = PostSerializer
     queryset = Post.objects.all()
+
+class PostUser(generics.ListAPIView):
+    permission_classes = [permissions.AllowAny]
+    serializer_class = PostSerializer
+
+    def get_queryset(self):
+        return Post.objects.filter(author=self.kwargs['pk'])
 
 @api_view(['POST'])
 def liked(request, **kwargs):
@@ -37,3 +51,15 @@ def liked(request, **kwargs):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     except Http404:
         return Response("Post com esse id não existe", status=status.HTTP_404_NOT_FOUND)
+
+@api_view(['POST'])
+def commentLiked(request, **kwargs):
+    try:
+        comment = get_object_or_404(Comment, pk=kwargs['pk'])
+        serializer = UpdateCommentSerializer(comment, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    except Http404:
+        return Response("Comment com esse id não existe", status=status.HTTP_404_NOT_FOUND)
