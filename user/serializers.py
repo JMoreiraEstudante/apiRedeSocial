@@ -21,3 +21,9 @@ class UpdateUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = NewUser
         fields = ('photo', 'about', 'following')
+
+
+class UpdateFollowing(serializers.ModelSerializer):
+    class Meta:
+        model = NewUser
+        fields = ('following',)

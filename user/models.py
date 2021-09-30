@@ -42,7 +42,7 @@ class NewUser(AbstractBaseUser, PermissionsMixin):
     user_name = models.CharField(max_length=150, unique=True)
     photo = models.IntegerField(choices=PhotoChoices.choices, default=PhotoChoices.default)
     about = models.TextField(max_length=255, default="about me...")
-    following = models.ManyToManyField('self', symmetrical=False, related_name='followers', blank=True, null=True)
+    following = models.ManyToManyField('self', symmetrical=False, related_name='followers', blank=True)
     start_date = models.DateTimeField(default=timezone.now)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)

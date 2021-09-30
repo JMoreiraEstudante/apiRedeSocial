@@ -1,10 +1,13 @@
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .serializers import CustomUserSerializer, UpdateUserSerializer
+from .serializers import CustomUserSerializer, UpdateUserSerializer, UpdateFollowing
 from .models import NewUser
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import generics, permissions
+from rest_framework.decorators import api_view
+from django.http.response import Http404
+from django.shortcuts import get_object_or_404
 
 class CustomUserCreate(APIView):
     permission_classes = [permissions.AllowAny]
@@ -23,10 +26,17 @@ class UserDetail(generics.RetrieveAPIView):
     serializer_class = CustomUserSerializer
     queryset = NewUser.objects.all()
 
-class UserUpdate(generics.RetrieveUpdateAPIView):
-    permission_classes = [permissions.AllowAny]
-    serializer_class = UpdateUserSerializer
-    queryset = NewUser.objects.all()
+@api_view(['POST'])
+def followed(request, **kwargs):
+    try:
+        follower = get_object_or_404(NewUser, pk=kwargs['pk'])
+        serializer = UpdateFollowing(follower, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    except Http404:
+        return Response("Seguidor com esse id não existe", status=status.HTTP_404_NOT_FOUND)
 
 class UserList(generics.ListAPIView):
     permission_classes = [permissions.AllowAny]
