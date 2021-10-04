@@ -3,10 +3,10 @@ from django.shortcuts import get_object_or_404
 from rest_framework import generics, permissions
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Post, Comment
+from .models import Post, Comment, Notification
 from user.models import NewUser
 from django.db.models import Count
-from .serializers import PostSerializer, UpdatePostSerializer, CommentSerializer, UpdateCommentSerializer, PostFollowingSerializer
+from .serializers import PostSerializer, CommentSerializer, PostFollowingSerializer
 from rest_framework.decorators import api_view
 from django.db.models import Q
 
@@ -41,36 +41,44 @@ class CommentList(generics.ListCreateAPIView):
 
 class PostDetail(generics.RetrieveAPIView):
     permission_classes = [permissions.AllowAny]
-    serializer_class = PostSerializer
-    queryset = Post.objects.all()
+    serializer_class = PostFollowingSerializer
+    queryset = Post.objects.all().annotate(comments=Count('comment'))
 
 class PostUser(generics.ListAPIView):
     permission_classes = [permissions.AllowAny]
-    serializer_class = PostSerializer
+    serializer_class = PostFollowingSerializer
 
     def get_queryset(self):
-        return Post.objects.filter(author=self.kwargs['pk'])
+        return Post.objects.filter(author=self.kwargs['pk']).annotate(comments=Count('comment'))
 
 @api_view(['POST'])
 def liked(request, **kwargs):
     try:
         post = get_object_or_404(Post, pk=kwargs['pk'])
-        serializer = UpdatePostSerializer(post, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        user = get_object_or_404(NewUser, pk=request.data['like'])
+        if (request.data['action'] == True):
+            post.likes.add(user)
+            post.save()
+            return Response("Adicionado o Like", status=status.HTTP_202_ACCEPTED)
+        else:
+            post.likes.remove(user)
+            post.save()
+            return Response("Removido o Like", status=status.HTTP_202_ACCEPTED)
     except Http404:
-        return Response("Post com esse id não existe", status=status.HTTP_404_NOT_FOUND)
+        return Response("Esse id não existe", status=status.HTTP_404_NOT_FOUND)
 
 @api_view(['POST'])
 def commentLiked(request, **kwargs):
     try:
         comment = get_object_or_404(Comment, pk=kwargs['pk'])
-        serializer = UpdateCommentSerializer(comment, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        user = get_object_or_404(NewUser, pk=request.data['like'])
+        if (request.data['action'] == True):
+            comment.likes.add(user)
+            comment.save()
+            return Response("Adicionado o Like", status=status.HTTP_202_ACCEPTED)
+        else:
+            comment.likes.remove(user)
+            comment.save()
+            return Response("Removido o Like", status=status.HTTP_202_ACCEPTED)
     except Http404:
-        return Response("Comment com esse id não existe", status=status.HTTP_404_NOT_FOUND)
+        return Response("Eesse id não existe", status=status.HTTP_404_NOT_FOUND)

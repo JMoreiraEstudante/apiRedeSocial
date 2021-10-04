@@ -26,3 +26,11 @@ class Comment(models.Model):
 
     class Meta:
         ordering = ['-created_date']
+
+class Notification(models.Model):
+    message = models.TextField(max_length=255)
+    receiver = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="receiver")
+    sender = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="sender")
+    alive = models.BooleanField(default=True)
