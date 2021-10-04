@@ -54,3 +54,6 @@ class NewUser(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.user_name
+
+    def get_following(self):
+        return self.following

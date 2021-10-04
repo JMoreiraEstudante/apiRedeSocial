@@ -5,8 +5,10 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import Post, Comment
 from user.models import NewUser
-from .serializers import PostSerializer, UpdatePostSerializer, CommentSerializer, UpdateCommentSerializer
+from django.db.models import Count
+from .serializers import PostSerializer, UpdatePostSerializer, CommentSerializer, UpdateCommentSerializer, PostFollowingSerializer
 from rest_framework.decorators import api_view
+from django.db.models import Q
 
 '''class UserPermission(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
@@ -20,6 +22,15 @@ class PostList(generics.ListCreateAPIView):
     permission_classes = [permissions.AllowAny]
     queryset = Post.objects.all()
     serializer_class = PostSerializer
+
+class PostFollowing(generics.ListAPIView):
+    permission_classes = [permissions.AllowAny]
+    serializer_class = PostFollowingSerializer
+
+    def get_queryset(self):
+        user = NewUser.objects.filter(id=self.kwargs['pk']).first()
+        posts = Post.objects.filter(Q(author__in = user.following.all()) | Q(author = user.id)).order_by('-created_date').annotate(comments=Count('comment'))
+        return posts
 
 class CommentList(generics.ListCreateAPIView):
     permission_classes = [permissions.AllowAny]
