@@ -7,7 +7,6 @@ class Post(models.Model):
         settings.AUTH_USER_MODEL, blank=True, related_name='post_likes')
     created_date = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
-
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
